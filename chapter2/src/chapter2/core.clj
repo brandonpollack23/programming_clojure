@@ -180,3 +180,20 @@ a multiline string")
   (vec (reverse (rest (range (inc n))))))
 
 ;; Where's my for loop
+
+;; Here I reimplement indexOfAny from Apache Commons in clojure (actually I
+;; copied it from the book but shut up)
+(defn indexed [coll] (map-indexed vector coll))
+
+(defn index-filter [pred coll]
+  (when pred
+    (for [[idx elt] (indexed coll) :when (pred elt)]
+      idx)))
+
+(defn index-of-any [pred coll]
+  (first (index-filter pred coll)))
+
+;; This is *way* more generic than the java version and can be used for loads!!
+;; EG what is the 3rd heads coin flip in a series of coin flips?
+(defn third-coinflip-heads []
+  (nth (index-filter #{:h} [:t :t :h :t :h :t :t :t :h :h]) 3))
