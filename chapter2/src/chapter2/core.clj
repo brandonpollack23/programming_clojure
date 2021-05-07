@@ -106,4 +106,77 @@ a multiline string")
 
 ;; And their values so we can return them as closures. Here is where clojure got
 ;; it's punny name!
-(defn make-greeter [greeting-prefix])
+(defn make-greeter [greeting-prefix]
+  (fn [username] (str greeting-prefix ", " username)))
+
+;; Bindings
+
+;; let
+(defn square-corners [bottom left size]
+  (let [top (+ bottom size)
+        right (+ left size)]
+    [[bottom left] [top left] [top right] [bottom right]]))
+
+;; Destructuring
+(defn greet-author-1 [author]
+  (str "Hello, " (:first-name author)))
+
+(defn greet-author-2 [{fname :first-name}]
+  (str "Hello, " fname))
+
+(defn ellipsize [words]
+  (let [[w1 w2 w3] (str/split words #"\s+")]
+    (str/join " " [w1 w2 w3 "..."])))
+
+;; Java land interop
+(defn java-new-demo []
+  (new java.util.Random))
+
+(defn java-new-demo-concise []
+  (java.util.Random.))
+
+(defn use-a-random [^java.util.Random rnd]
+  (. rnd nextInt 10))
+
+;; Flow control
+
+;; if
+(defn is-small? [number]
+  (if (< number 100) "yes" "no"))
+
+;; do, chain multiple side effecting commands
+(defn is-small-2? [number]
+  (if (< number 100)
+    "yes"
+    (do
+      (println "Saw a big Number" number)
+      "no")))
+
+;; Loop
+(defn loops-yo []
+  (loop [result []
+         x 5]
+    (if (zero? x)
+      result
+      (recur (conj result x) (dec x)))))
+
+;; Recur can work without loop as well
+(defn countdown [result x]
+  (if (zero? x)
+    result
+    (recur (conj result x) (dec x))))
+
+;; But this is rare since you can likely use clojure's included sequences and be
+;; more declarative
+(defn countdown-declaritive-1 [n]
+  (into [] (take n (iterate dec 5))))
+
+(defn countdown-declaritive-1 [n]
+  (let [i (inc n)
+        list-range (reverse (range i))]
+    (into [] (drop-last list-range))))
+
+(defn countdown-declaritive-2 [n]
+  (vec (reverse (rest (range (inc n))))))
+
+;; Where's my for loop
