@@ -1,6 +1,7 @@
 (ns chapter3.core
   (:require [clojure.string :as str]
-            [clojure.java.io :refer [reader]])
+            [clojure.java.io :refer [reader]]
+            [clojure.set :as set])
   (:import java.io.File))
 
 (def whole-numbers (iterate inc 1))
@@ -122,3 +123,69 @@
      (for [f files :when (and (clojure-source? f) (non-svn? f))]
        (with-open [rdr (reader f)]
          (count (filter non-blank? (line-seq rdr))))))))
+
+;; Structure specific functions.
+
+;; Vecs and Lists were obvious, maps are pretty simple too
+;; assoc, dissoc, get, map as function, keyword as function
+;;
+;; One subtelty is if a map contains a key whose value is nil, you can differentiate that with contains?
+;;
+;; On merge, rightmost wins
+;; merge-with allows specificity of what should happen
+
+(def song {:name "Agnus Dei"
+           :artist "Krzystzof Penderecki"
+           :album "Polish Requiem"
+           :genre "Classical"})
+
+(merge-with
+ #(str %1 " " %2)
+ song {:size 8118166 :time 507245 :genre "Shit"})
+
+;; Set functions
+;; There are more in clojure.set!
+(def languages #{"java" "c" "d" "clojure"})
+(def beverages #{"java" "chai" "pop"})
+
+(set/union languages beverages)
+(set/intersection languages beverages)
+(set/difference languages beverages)
+;; Different from filter because it returns a set, not a seq
+(set/select #(= 1 (count %)) languages)
+
+;; Clojure sets have everything we need for relational algebra implementation
+;; and therefore an "in memory database"
+(def compositions
+  #{{:name "The Art of the Fugue" :composer "J. S. Bach"}
+    {:name "Musical Offering" :composer "J. S. Bach"}
+    {:name "Requiem" :composer "Giuseppe Verdi"}
+    {:name "Requiem" :composer "W. A. Mozart"}})
+(def composers
+  #{{:composer "J. S. Bach" :country "Germany"}
+    {:composer "W. A. Mozart" :country "Germany"}
+    {:composer "Giuseppe Verdi" :country "Italy"}})
+(def nations
+  #{{:nation "Germany" :language "German"}
+    {:nation "Austria" :language "German"}
+    {:nation "Italy" :language "Italian"}})
+
+;; Rename renames keys
+(set/rename compositions {:name :title})
+(set/select #(= (:name %) "Requiem") compositions)
+
+;; Project calls select-keys on each member, like select in sql with certain columns
+(set/project compositions [:name])
+
+;; Cross product is possible with for like so, but usually a subset is wanted,
+;; which can be achieved with join
+(for [m compositions c composers] (concat m c))
+(set/join compositions composers)
+(set/join nations composers {:country :nation})
+
+(set/project
+ (let [reqiuems (set/select #(= (:name %) "Requiem") compositions)]
+   (set/join
+    reqiuems
+    composers))
+ [:country])
