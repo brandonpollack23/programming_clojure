@@ -160,11 +160,13 @@
   #{{:name "The Art of the Fugue" :composer "J. S. Bach"}
     {:name "Musical Offering" :composer "J. S. Bach"}
     {:name "Requiem" :composer "Giuseppe Verdi"}
-    {:name "Requiem" :composer "W. A. Mozart"}})
+    {:name "Requiem" :composer "W. A. Mozart"}
+    {:name "Fake Song" :composer "Nobody"}})
 (def composers
   #{{:composer "J. S. Bach" :country "Germany"}
     {:composer "W. A. Mozart" :country "Germany"}
-    {:composer "Giuseppe Verdi" :country "Italy"}})
+    {:composer "Giuseppe Verdi" :country "Italy"}
+    {:composer "Fake Guy" :country "Space"}})
 (def nations
   #{{:nation "Germany" :language "German"}
     {:nation "Austria" :language "German"}
@@ -189,3 +191,24 @@
     reqiuems
     composers))
  [:country])
+
+(defn left-join
+  [xrel yrel]
+  (let [xcols (set (keys (first (seq xrel))))
+        ycols (set (keys (first (seq yrel))))
+        shared-keys (set/intersection xcols ycols)
+        ;; Get an index map of the set of shared keys to entries in yrel
+        idx (set/index yrel shared-keys)]
+    (reduce (fn [acc x]
+              ;; Try to find a row containing all the shared keys in y, which is
+              ;; the key to the index map.
+              (if-let [found-ys (idx (select-keys x shared-keys))]
+                ;; Found in y, merge with x and add.
+                ;; For every found y, merge it into acc
+                (reduce #(conj %1 (merge x %2)) acc found-ys)
+                ;; Not in y, left join by just adding the x row
+                (conj acc x)))
+            #{} xrel)))
+
+(defn right-join [xrel yrel]
+  (left-join yrel xrel))
