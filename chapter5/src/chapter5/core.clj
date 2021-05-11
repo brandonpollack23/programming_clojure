@@ -86,4 +86,14 @@
                             "game2" {"Brandon" 37 "Billy" 42}})
 (s/conform ::nesting-or-42 42)
 
-;; 135/294 Collection Sampling
+;; Sampling collections check up to s/*coll-check-limit* elements
+(defn rand-str [len] (let [rand-char #(char (rand-nth [(+ (rand 26) (int \A))
+                                                       (+ (rand 26) (int \a))]))]
+                       (apply str (take len (repeatedly rand-char)))))
+
+;; This is exemplefied here, go ahead and evaluate this, then time line 99 in teh repl, itll be fast every time.
+(s/def ::sampling-scores (s/every-kv string? int?))
+(def random-mapping (into {} (take 100000 (repeatedly #(vector
+                                                        (rand-str 10)
+                                                        (int (rand 1000)))))))
+(s/valid? ::sampling-scores random-mapping)
