@@ -1,5 +1,6 @@
 (ns chapter5.core
-  (:require [clojure.spec.alpha :as s]))
+  (:require [clojure.spec.alpha :as s]
+            [clojure.core.reducers :as r]))
 
 (s/def ::company-name string?)
 
@@ -93,7 +94,17 @@
 
 ;; This is exemplefied here, go ahead and evaluate this, then time line 99 in teh repl, itll be fast every time.
 (s/def ::sampling-scores (s/every-kv string? int?))
-(def random-mapping (into {} (take 100000 (repeatedly #(vector
-                                                        (rand-str 10)
-                                                        (int (rand 1000)))))))
+(def random-mapping (into {}
+                          (take 100000 (repeatedly #(vector
+                                                     (rand-str 10)
+                                                     (int (rand 1000)))))))
+(def random-mapping-2 (into {}
+                            (map (fn [_] (vector (rand-str 10) (int (rand 1000)))))
+                            (range 100000)))
+(def random-mapping-3
+  (->> (make-array (type (vector)) 100000)
+       (r/map (fn [_] (vector (rand-str 10) (int (rand 1000)))))
+       (into {})))
+;; TODO try with futures then joining them.
+
 (s/valid? ::sampling-scores random-mapping)
