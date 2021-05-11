@@ -95,16 +95,24 @@
 ;; This is exemplefied here, go ahead and evaluate this, then time line 99 in teh repl, itll be fast every time.
 (s/def ::sampling-scores (s/every-kv string? int?))
 (def random-mapping (into {}
-                          (take 100000 (repeatedly #(vector
-                                                     (rand-str 10)
-                                                     (int (rand 1000)))))))
+                          (take 1000 (repeatedly #(vector
+                                                   (rand-str 10)
+                                                   (int (rand 1000)))))))
 (def random-mapping-2 (into {}
                             (map (fn [_] (vector (rand-str 10) (int (rand 1000)))))
-                            (range 100000)))
+                            (range 1000)))
 (def random-mapping-3
-  (->> (make-array (type (vector)) 100000)
+  (->> (make-array (type (vector)) 1000)
        (r/map (fn [_] (vector (rand-str 10) (int (rand 1000)))))
        (into {})))
-;; TODO try with futures then joining them.
+
+(def random-mapping-4 (let [chunk-size (.availableProcessors (Runtime/getRuntime))
+                            futures (for [_ (range chunk-size)]
+                                      (future (->> (make-array (type (vector)) (/ 1000 chunk-size))
+                                                   (r/map (fn [_] (vector (rand-str 10) (int (rand 1000)))))
+                                                   (into {}))))]
+                        (->> futures
+                             (r/map deref)
+                             (r/fold merge))))
 
 (s/valid? ::sampling-scores random-mapping)
