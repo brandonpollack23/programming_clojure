@@ -6,7 +6,7 @@
   :dependencies [[org.clojure/clojure "1.10.0"]]
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}}
-  :repl-options {:init-ns chapter4.core
+  :repl-options {:init-ns chapter5.core
                  :init (do
                          (set! *print-length* 10)
                          (set! *print-level* 25))})

@@ -88,16 +88,18 @@
 (s/conform ::nesting-or-42 42)
 
 ;; Sampling collections check up to s/*coll-check-limit* elements
-(defn rand-str [len] (let [rand-char #(char (rand-nth [(+ (rand 26) (int \A))
-                                                       (+ (rand 26) (int \a))]))]
-                       (apply str (take len (repeatedly rand-char)))))
+(defn rand-str [len] (let [rand-char (fn [] (char ((rand-nth [#(+ (rand 26) (int \A))
+                                                              #(+ (rand 26) (int \a))]))))]
+                       (->> rand-char
+                            (repeatedly len)
+                            (apply str))))
 
 ;; This is exemplefied here, go ahead and evaluate this, then time line 99 in teh repl, itll be fast every time.
 (s/def ::sampling-scores (s/every-kv string? int?))
 (def random-mapping (into {}
                           (take 1000 (repeatedly #(vector
-                                                   (rand-str 10)
-                                                   (int (rand 1000)))))))
+                                                   (rand-str (+ 1 (rand 100)))
+                                                   (int (rand 10000)))))))
 (def random-mapping-2 (into {}
                             (map (fn [_] (vector (rand-str 10) (int (rand 1000)))))
                             (range 1000)))
@@ -116,3 +118,102 @@
                              (r/fold merge))))
 
 (s/valid? ::sampling-scores random-mapping)
+
+;; Tuples
+(s/def ::point (s/tuple float? float?))
+(s/conform ::point [1.3 2.7])
+
+;; Maps
+(def example-map-structure
+  {:music/id #uuid "a893e514-581f-41bd-bcc8-3cebc2f3a676"
+   :music/artist "Rush"
+   :music/title "Moving Pictures"
+   :music/date #inst "1981-02-12"})
+
+;; ;; Now lets spec it
+(s/def :music/id uuid?)
+(s/def :music/artist string?)
+(s/def :music/title string?)
+(s/def :music/date inst?)
+(s/def :music/release
+  (s/keys :req [:music/id]
+          :opt [:music/artist
+                :music/title
+                :music/date]))
+(s/conform :music/release example-map-structure)
+;; Extras are ok and conform as well
+(def example-map-structure-extra
+  (assoc example-map-structure :music/extra 'extra-new-stuff))
+(s/valid? :music/release example-map-structure-extra)
+(s/conform :music/release example-map-structure-extra)
+
+;; with unqualified names its like this:
+(s/def :music/release-unqualified
+  (s/keys :req-un [:music/id]
+          :opt-un [:music/artist
+                   :music/title
+                   :music/date]))
+(def example-map-structure-unqualified
+  {:id #uuid "a893e514-581f-41bd-bcc8-3cebc2f3a676"
+   :artist "Rush"
+   :title "Moving Pictures"
+   :date #inst "1981-02-12"})
+(s/valid? :music/release-unqualified example-map-structure-unqualified)
+
+;; regex ops
+(s/def ::cat-example (s/cat :s string? :i int?))
+(s/valid? ::cat-example ["abc" 100])
+(s/conform ::cat-example ["abc" 100])
+
+;; or equiv to (op1|op2)
+(s/def ::alt-example (s/alt :i int? :vi (s/coll-of int?) :k keyword?))
+(s/valid? ::alt-example [[100 200]])
+(s/valid? ::alt-example [:one-hundred])
+(s/conform ::alt-example [:one-hundred])
+
+;; repitition + ? *
+(s/def ::oe (s/cat :odds (s/+ odd?) :even (s/? even?)))
+(s/conform ::oe [1 3 5 10])
+(s/conform ::oe [1 3 5 10 12]) ;; false
+
+;; variable arguments with regex ops
+;; eg any number of any type
+(s/def ::println-args (s/* any?))
+
+;; variadic args, like for clojure.set/intersection
+(s/def ::intersection-args (s/cat :s1 set? :sets (s/* set?)))
+;; or
+(s/def ::intersection-args-2 (s/+ set?))
+
+;; and options keywords list like the atom fn
+(s/def ::meta map?)
+(s/def ::validator ifn?)
+(s/def ::atom-args
+  (s/cat :x any? :options (s/keys* :opt-un [::meta ::validator])))
+(s/conform ::atom-args [100 :meta {:foo 1} :validator int?])
+
+;; Example for repeat, which has an optional first arg integer
+(s/def ::repeat-args
+  (s/cat :n (s/? int?) :x any?))
+(s/conform ::repeat-args [5 'test])
+(s/conform ::repeat-args ['test])
+
+;; Finally, specifying functions, let's do it for rand:
+;; Returns a random floating point number between 0 (inclusive) and
+;; n (default 1) (exclusive).
+(s/def ::rand-args (s/cat :n (s/? number?)))
+(s/def ::rand-ret double?)
+;; Relates args to ret
+(s/def ::rand-fn
+  (fn [{:keys [args ret]}]
+    (let [n (or (:n args) 1)]
+      (cond (zero? n) (zero? ret)
+            (pos? n) (and (>= ret 0) (< ret n))
+            (neg? n) (and (<= ret 0) (> ret n))))))
+(s/fdef clojure.core/rand
+  :args ::rand-args
+  :ret  ::rand-ret
+  :fn   ::rand-fn)
+
+;; This still is not instrumented but we will talk about anon functions before
+;; moving on
