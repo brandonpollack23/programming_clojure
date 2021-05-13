@@ -5,8 +5,10 @@
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.clojure/test.check "1.1.0"]]
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}}
-  :repl-options {:init-ns chapter5.core
-                 :init (do
-                         (set! *print-length* 10)
-                         (set! *print-level* 25))})
+  :profiles {:uberjar {:aot :all}
+             :dev {:repl-options {:init-ns chapter5.core
+                                  :init (do
+                                          (set! *print-length* 10)
+                                          (set! *print-level* 25))}
+                   :injections [(require 'clojure.spec.test.alpha)
+                                (clojure.spec.test.alpha/instrument)]}})
