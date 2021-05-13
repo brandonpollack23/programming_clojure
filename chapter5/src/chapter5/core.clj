@@ -1,6 +1,9 @@
 (ns chapter5.core
   (:require [clojure.spec.alpha :as s]
-            [clojure.core.reducers :as r]))
+            [clojure.core.reducers :as r]
+            [clojure.spec.test.alpha :as stest]
+            [clojure.spec.gen.alpha :as gen]
+            [clojure.string :as str]))
 
 (s/def ::company-name string?)
 
@@ -217,3 +220,54 @@
 
 ;; This still is not instrumented but we will talk about anon functions before
 ;; moving on
+(defn opposite [pred]
+  (comp not pred))
+(s/def ::pred
+  (s/fspec
+   :args (s/cat :x any?)
+   :ret boolean?))
+
+(s/fdef opposite
+  :args (s/cat :pred ::pred)
+  :ret ::pred)
+
+;; Instrumenting (most likely in tests)
+(stest/instrument 'clojure.core/rand)
+
+;; Now lets do generative testing with something like (doc symbol)
+;; clojure.core/symbol
+;; ([name] [ns name])
+;; Returns a Symbol with the given namespace and name. Arity-1 works
+;; on strings, keywords, and vars.
+(s/fdef clojure.core/symbol
+  :args (s/cat :ns (s/? string?) :name string?)
+  :ret symbol?
+  :fn (fn [{:keys [args ret]}]
+        (and (= (name ret) (:name args))
+             (= (namespace ret) (:ns args)))))
+;; Now run against 100 generated tests.
+(stest/check 'clojure.core/symbol)
+;; Or generate myself
+(s/exercise (s/cat :ns (s/? string?) :name string?))
+
+;; Sometimes you need a custom generator.
+;; Take the big-odd example here:
+(defn big? [x] (> x 100))
+(s/def ::big-odd (s/and odd? big?))
+;; (s/exercise ::big-odd) ;; boom!
+
+;; This is because there is no mapped predicate for odd?, but if we add one first:
+(s/def ::big-odd (s/and int? odd? big?))
+;; it works out.  That's because it generates an int and checks the rest, which
+;; can get pretty slow for very stringent parameters, for this we can customize
+;; the generator.
+
+;; Here is one, for the very first function where we generated marbles.
+(s/def :marble/color-red (s/with-gen :marble/color #(s/gen #{:red})))
+;; Now it only generates red, useful for narrowing down a type of test.
+(s/exercise :marble/color-red)
+;; we can sldo map generators!
+(s/def ::sku
+  (s/with-gen (s/and string? #(str/starts-with? % "SKU-"))
+    (fn [] (gen/fmap #(str "SKU-" %) (s/gen (s/and string? #(> (.length %) 0)))))))
+(s/exercise ::sku)
