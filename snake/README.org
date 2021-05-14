@@ -5,6 +5,7 @@ Snake game from programming clojure as is.
 * Tasks
 + [X] Spec for game-state
 + [ ] Seperate core from swing
++ [ ] Add exit button that quits app
 + [ ] Make walls loop
 + [X] Do a build to uberjar and run on windows
 + [ ] Add cljfx version and build
