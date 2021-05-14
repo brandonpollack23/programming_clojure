@@ -5,13 +5,18 @@ Snake game from programming clojure as is.
 * Tasks
 + [ ] Spec for game-state
 + [ ] Seperate core from swing
++ [ ] Do a build to uberjar and run on windows
 + [ ] Add cljfx version and build
 + [ ] Make snake larger by default
 + [ ] Add points display
 + [ ] Make the window size programmable/fullscreenable
 + [ ] Add Pause/Options Menu
-  + [ ] Add Restart Button
-  + [ ] Make win length an option
+  * [ ] Add Restart Button
+  * [ ] Make win length an option
++ [ ] Make Lein template for regular development
+  * [ ] instrumenting on in development
+  * [ ] repl limits
+  * [ ] Apache license (or choose?)
 * License
 
 Copyright © 2021 Brandon Pollack
