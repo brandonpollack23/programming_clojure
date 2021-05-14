@@ -3,8 +3,9 @@
 Snake game from programming clojure as is.
 
 * Tasks
-+ [ ] Spec for game-state
++ [X] Spec for game-state
 + [ ] Seperate core from swing
++ [ ] Make walls loop
 + [X] Do a build to uberjar and run on windows
 + [ ] Add cljfx version and build
 + [ ] Make snake larger by default
@@ -13,6 +14,8 @@ Snake game from programming clojure as is.
 + [ ] Add Pause/Options Menu
   * [ ] Add Restart Button
   * [ ] Make win length an option
+  * [ ] Add dimension chooser
+  * [ ] Add block scale slider
 + [ ] Make Lein template for regular development
   * [ ] instrumenting on in development
   * [ ] repl limits

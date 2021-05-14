@@ -20,9 +20,16 @@
 
 ;; Specs
 (s/def ::coordinate (s/tuple int? int?))
+(s/def ::locaton ::coordinate)
 (s/def ::rect (s/cat :x int? :y int? :l int? :w int?))
-(s/def ::canvas-object (s/keys :req-un [::type]))
 (s/def ::direction (s/and (s/tuple int? int?) #(#{[0 1] [0 -1] [1 0] [-1 0]} %)))
+(s/def ::body (s/coll-of ::coordinate :distinct true :into #{}))
+
+(s/def ::canvas-object (s/keys :req-un [::type]))
+(s/def ::snake (s/merge ::canvas-object (s/keys :req [::body ::direction])))
+(s/def ::apple (s/merge ::canvas-object (s/keys :req [::location])))
+
+(s/def ::game-state (s/keys :req [::snake ::apple]))
 
 ;; Functional Model
 
@@ -44,7 +51,7 @@
        [(pt 0) (pt 1) 1 1]))
 
 (s/fdef create-apple
-  :ret ::canvas-object)
+  :ret ::apple)
 (defn create-apple
   "Creates an apple with a random x y coordinate within width and height"
   []
@@ -53,7 +60,7 @@
    :type :apple})
 
 (s/fdef create-snake
-  :ret ::canvas-object)
+  :ret ::snake)
 (defn create-snake
   "Creates the snake with a body of size 1, facing right"
   []
@@ -63,8 +70,8 @@
    :color (Color. 15 160 70)})
 
 (s/fdef turn
-  :args (s/tuple ::canvas-object ::direction)
-  :ret ::canvas-object)
+  :args (s/tuple ::snake ::direction)
+  :ret ::snake)
 (defn turn
   "Turns the direction of the snake"
   [snake newdir]
@@ -72,7 +79,7 @@
 
 (s/fdef move
   :args (s/and (s/keys :req-un [::body ::dir]) (s/? symbol?))
-  :ret ::canvas-object)
+  :ret ::snake)
 (defn move
   "Moves the snake, potentially growing it (by not removing the tail)"
   [{:keys [body dir] :as snake} & grow]
