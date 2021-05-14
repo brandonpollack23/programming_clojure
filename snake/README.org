@@ -7,6 +7,7 @@ Snake game from programming clojure as is.
 + [X] Seperate core from swing
 + [X] Do a build to uberjar and run on windows
 + [ ] Add cljfx version and build
++ [ ] Fix TODOs in cljfx
 + [ ] (uber)jar-exclusions of swing
 + [ ] Add tests for snake.core and snake.cljfx
 + [ ] Add exit button that quits app

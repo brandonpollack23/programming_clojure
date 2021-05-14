@@ -4,6 +4,8 @@
             [snake.core :refer :all])
   (:import (javafx.scene.canvas Canvas GraphicsContext)
            (javafx.scene.paint Color)))
+(def canvas-width (* point-size width))
+(def canvas-height (* point-size height))
 
 (defn eightbit->float [n] (float (/ n 255)))
 (def apple-color-rgba (map eightbit->float [210 50 90 1]))
@@ -16,7 +18,7 @@
     (.setFill g (game-colors->javafx-color color))
     (.fillRect g x y width height)))
 
-(defmulti paint (fn [^GraphicsContext g object & _] (:type object)))
+(defmulti paint (fn [^GraphicsContext _ object & _] (:type object)))
 (defmethod paint :apple [^GraphicsContext g {:keys [location color]}]
   (fill-point g color location))
 (defmethod paint :snake [^GraphicsContext g {:keys [body color]}]
@@ -27,7 +29,7 @@
   "Draws game onto javafx canvas"
   [^Canvas c {:keys [snake apple]}]
   (let [g (.getGraphicsContext2D c)]
-    (.clearRect g 0 0 width height)
+    (.clearRect g 0 0 canvas-width canvas-height)
     (paint g snake)
     (paint g apple)))
 
@@ -37,17 +39,16 @@
    :height height
    :draw #(draw-game % game-state)})
 
-(def window-width (* point-size width))
-(def window-height (* point-size height))
+;; TODO on renderer exit exit application
 (def renderer
   (fx/create-renderer
    :middleware
    (fx/wrap-map-desc
-    (fn [game-state]
+    (fn [application-state]
       {:fx/type :stage
        :title "CLJFX Snake!"
-       :width window-width
-       :height window-height
+       :width canvas-width
+       :height canvas-height
        :showing true
        :scene {:fx/type :scene
                :root {:fx/type :v-box
@@ -55,13 +56,37 @@
                       :children [{:fx/type game-canvas
                                   :width width
                                   :height height
-                                  :game-state game-state}]}}}))))
+                                  :game-state (:game-state application-state)}]}}}))))
 
-(defn game
+(defn game-step
+  [snake next-state]
+  (cond
+    (head-overlaps-body? snake) (do
+                                  ;; TODO replace with popup
+                                  (println "YOU LOSE!")
+                                  (reset-game))
+    (win? snake) (do
+                   (println "YOU WIN!")
+                   (reset-game))
+    :else next-state))
+
+(defn application-game-step [{:keys [game-state] :as application-state}]
+  (assoc application-state :game-state
+         (let [{:keys [snake] :as next-state}
+               (update-positions game-state)]
+           (game-step snake next-state))))
+
+(defn application-loop
   "Creates a new game in the javafx UI Runtime via cljfx"
   []
-  (let [*game-state (atom (reset-game {}))]
-    (fx/mount-renderer *game-state renderer)))
+  (let [*application-state (atom {:game-state (reset-game)})
+        renderer (fx/mount-renderer *application-state renderer)]
+    (loop []
+      ;; TODO replace with something that isnt sleep
+      (java.lang.Thread/sleep turn-millis)
+      (swap! *application-state application-game-step)
+      (recur))))
 
 (defn -main [& _]
-  (println "Launching snake game in cljfx ui..."))
+  (println "Launching snake game in cljfx ui...")
+  (application-loop))

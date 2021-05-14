@@ -98,9 +98,14 @@
 
 ;; Begin Mutable Model
 
-(defn reset-game [_]
-  {:snake (create-snake)
-   :apple (create-apple)})
+(s/fdef reset-game
+  :ret ::game-state)
+(defn reset-game
+  "Initializes snake to default location and apple randomly"
+  ([_] (reset-game))
+  ([]
+   {:snake (create-snake)
+    :apple (create-apple)}))
 
 (defn update-direction [{:keys [snake] :as game-state} newdir]
   (if newdir
