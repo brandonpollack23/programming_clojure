@@ -4,11 +4,13 @@ Snake game from programming clojure as is.
 
 * Tasks
 + [X] Spec for game-state
-+ [ ] Seperate core from swing
-+ [ ] Add exit button that quits app
-+ [ ] Make walls loop
++ [X] Seperate core from swing
 + [X] Do a build to uberjar and run on windows
 + [ ] Add cljfx version and build
++ [ ] (uber)jar-exclusions of swing
++ [ ] Add tests for snake.core and snake.cljfx
++ [ ] Add exit button that quits app
++ [ ] Make walls loop
 + [ ] Make snake larger by default
 + [ ] Add points display
 + [ ] Make the window size programmable/fullscreenable
