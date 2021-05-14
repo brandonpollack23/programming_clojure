@@ -3,7 +3,9 @@
   (:require [cljfx.api :as fx]
             [snake.core :refer :all])
   (:import (javafx.scene.canvas Canvas GraphicsContext)
-           (javafx.scene.paint Color)))
+           (javafx.scene.paint Color)
+           (javafx.scene.input KeyCode KeyEvent)))
+;; Constants
 (def canvas-width (* point-size width))
 (def canvas-height (* point-size height))
 
@@ -11,6 +13,7 @@
 (def apple-color-rgba (map eightbit->float [210 50 90 255]))
 (def snake-color-rgba (map eightbit->float [15 160 70 255]))
 
+;; Drawing
 (def game-colors->javafx-color {:apple-color (apply #(Color. %1 %2 %3 %4) apple-color-rgba)
                                 :snake-color (apply #(Color. %1 %2 %3 %4) snake-color-rgba)})
 (defn fill-point [^GraphicsContext g ^Color color pt]
@@ -25,6 +28,7 @@
   (doseq [point body]
     (fill-point g color point)))
 
+;; Game loop
 (defn draw-game
   "Draws game onto javafx canvas"
   [^Canvas c {:keys [snake apple]}]
@@ -33,10 +37,44 @@
     (paint g snake)
     (paint g apple)))
 
+(defn game-step
+  [snake next-state]
+  (cond
+    (head-overlaps-body? snake) (do
+                                  ;; TODO replace with popup
+                                  (println "YOU LOSE!")
+                                  (reset-game))
+    (win? snake) (do
+                   (println "YOU WIN!")
+                   (reset-game))
+    :else next-state))
+
+(defn application-game-step [{:keys [game-state] :as application-state}]
+  (assoc application-state :game-state
+         (let [{:keys [snake] :as next-state}
+               (update-positions game-state)]
+           (game-step snake next-state))))
+
+;; UI Events
+
+(def keymap
+  {KeyCode/LEFT  :left
+   KeyCode/RIGHT :right
+   KeyCode/UP    :up
+   KeyCode/DOWN  :down
+   KeyCode/A     :left
+   KeyCode/D     :right
+   KeyCode/S     :down
+   KeyCode/W     :up})
+;; TODO make pure event handler
+
+;; UI
+
 (defn game-canvas [{:keys [game-state width height]}]
   {:fx/type :canvas
    :width width
    :height height
+   ;; TODO on key pressed
    :draw #(draw-game % game-state)})
 
 ;; TODO on renderer exit exit application
@@ -56,24 +94,6 @@
                                   :width canvas-width
                                   :height canvas-height
                                   :game-state (:game-state application-state)}]}}}))))
-
-(defn game-step
-  [snake next-state]
-  (cond
-    (head-overlaps-body? snake) (do
-                                  ;; TODO replace with popup
-                                  (println "YOU LOSE!")
-                                  (reset-game))
-    (win? snake) (do
-                   (println "YOU WIN!")
-                   (reset-game))
-    :else next-state))
-
-(defn application-game-step [{:keys [game-state] :as application-state}]
-  (assoc application-state :game-state
-         (let [{:keys [snake] :as next-state}
-               (update-positions game-state)]
-           (game-step snake next-state))))
 
 (defn application-loop
   "Creates a new game in the javafx UI Runtime via cljfx"
