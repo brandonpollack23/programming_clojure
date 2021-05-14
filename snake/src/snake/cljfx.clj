@@ -37,21 +37,25 @@
    :height height
    :draw #(draw-game % game-state)})
 
+(def window-width (* point-size width))
+(def window-height (* point-size height))
 (def renderer
-  (fx/create-renderer :middleware
-                      (fx/wrap-map-desc (fn [game-state]
-                                          {:fx/type :stage
-                                           :title "CLJFX Snake!"
-                                           :width (* point-size width)
-                                           :height (* point-size height)
-                                           :showing true
-                                           :scene {:fx/type :scene
-                                                   :root {:fx/type :v-box
-                                                          :alignment :center
-                                                          :children [{:fx/type game-canvas
-                                                                      :width width
-                                                                      :height height
-                                                                      :game-state game-state}]}}}))))
+  (fx/create-renderer
+   :middleware
+   (fx/wrap-map-desc
+    (fn [game-state]
+      {:fx/type :stage
+       :title "CLJFX Snake!"
+       :width window-width
+       :height window-height
+       :showing true
+       :scene {:fx/type :scene
+               :root {:fx/type :v-box
+                      :alignment :center
+                      :children [{:fx/type game-canvas
+                                  :width width
+                                  :height height
+                                  :game-state game-state}]}}}))))
 
 (defn game
   "Creates a new game in the javafx UI Runtime via cljfx"
