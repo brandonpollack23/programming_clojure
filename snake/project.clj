@@ -7,19 +7,16 @@
   :main snake.swing
   :profiles {:uberjar-swing {:aot :all}
              :dev {:dependencies [[org.baznex/imports "1.4.0"]]
-                   :repl-options {:init-ns snake.swing
-                                  :init (do
-                                          (set! *print-length* 10)
-                                          (set! *print-level* 25))}
+                   :global-vars [[*print-length* 10]
+                                 [*print-level* 25]]
+                   :repl-options {:init-ns snake.swing}
                    :injections [(require '[clojure.spec.test.alpha :as stest])
                                 (stest/instrument)]}
              ;; TODO (uber)jar-exclusions of swing
              :cljfx {:dependencies [[cljfx "1.7.13"]]
+                     :global-vars [[*print-length* 10]
+                                   [*print-level* 25]]
                      :repl-options {:main snake.cljfx
-                                    :init-ns snake.cljfx
-                                    ;; :init (do
-                                    ;;         (set! *print-length* 10)
-                                    ;;         (set! *print-level* 25))
-                                    }
+                                    :init-ns snake.cljfx}
                      :injections [(require '[clojure.spec.test.alpha :as stest])
                                   (stest/instrument)]}})
