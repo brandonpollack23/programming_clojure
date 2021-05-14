@@ -9,8 +9,8 @@
 (def apple-color-rgba (map eightbit->float [210 50 90 1]))
 (def snake-color-rgba (map eightbit->float [15 160 70 1]))
 
-(def game-colors->javafx-color {:apple-color apple-color-rgba
-                                :snake-color snake-color-rgba})
+(def game-colors->javafx-color {:apple-color (apply #(Color. %1 %2 %3 %4) apple-color-rgba)
+                                :snake-color (apply #(Color. %1 %2 %3 %4) snake-color-rgba)})
 (defn fill-point [^GraphicsContext g ^Color color pt]
   (let [[x y width height] (point-to-screen-rect pt)]
     (.setFill g (game-colors->javafx-color color))
@@ -31,11 +31,11 @@
     (paint g snake)
     (paint g apple)))
 
-(defn game-canvas [game-state]
+(defn game-canvas [{:keys [game-state width height]}]
   {:fx/type :canvas
    :width width
    :height height
-   :draw #(draw-game game-state)})
+   :draw #(draw-game % game-state)})
 
 (def renderer
   (fx/create-renderer :middleware
@@ -50,8 +50,8 @@
 (defn game
   "Creates a new game in the javafx UI Runtime via cljfx"
   []
-  (let [game-state (atom (reset-game {}))]
-    (fx/mount-renderer game-state renderer)))
+  (let [*game-state (atom (reset-game {}))]
+    (fx/mount-renderer *game-state renderer)))
 
 (defn -main [& _]
   (println "Launching snake game in cljfx ui..."))
