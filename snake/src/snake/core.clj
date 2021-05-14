@@ -23,11 +23,11 @@
 (s/def ::locaton ::coordinate)
 (s/def ::rect (s/cat :x int? :y int? :l int? :w int?))
 (s/def ::direction (s/and (s/tuple int? int?) #(#{[0 1] [0 -1] [1 0] [-1 0]} %)))
-(s/def ::body (s/coll-of ::coordinate :distinct true :into #{}))
+(s/def ::body (s/coll-of ::coordinate :distinct true :into '()))
 
 (s/def ::canvas-object (s/keys :req-un [::type]))
-(s/def ::snake (s/merge ::canvas-object (s/keys :req [::body ::direction])))
-(s/def ::apple (s/merge ::canvas-object (s/keys :req [::location])))
+(s/def ::snake (s/merge ::canvas-object (s/keys :req-un [::body ::direction])))
+(s/def ::apple (s/merge ::canvas-object (s/keys :req-un [::location])))
 
 (s/def ::game-state (s/keys :req [::snake ::apple]))
 
@@ -70,7 +70,7 @@
    :color (Color. 15 160 70)})
 
 (s/fdef turn
-  :args (s/tuple ::snake ::direction)
+  :args (s/cat :snake ::snake :direction ::direction)
   :ret ::snake)
 (defn turn
   "Turns the direction of the snake"
@@ -78,7 +78,7 @@
   (assoc snake :dir newdir))
 
 (s/fdef move
-  :args (s/and (s/keys :req-un [::body ::dir]) (s/? symbol?))
+  :args (s/cat :snake ::snake :grow (s/? symbol?))
   :ret ::snake)
 (defn move
   "Moves the snake, potentially growing it (by not removing the tail)"
