@@ -1,11 +1,5 @@
 (ns snake.core
-  (:import (java.awt Color Graphics Dimension)
-           (javax.swing JPanel JFrame Timer JOptionPane)
-           (java.awt.event ActionListener KeyListener))
-  (:require [org.baznex.imports :refer [import-static]]
-            [clojure.spec.alpha :as s])
-  (:gen-class))
-(import-static java.awt.event.KeyEvent VK_LEFT VK_RIGHT VK_UP VK_DOWN)
+  (:require [clojure.spec.alpha :as s]))
 
 ;; Global configuration options.
 (def width 75)
@@ -13,19 +7,19 @@
 (def point-size 10)
 (def turn-millis 75)
 (def win-length 5)
-(def dirs {VK_LEFT  [-1 0]
-           VK_RIGHT [1 0]
-           VK_UP    [0 -1]
-           VK_DOWN  [0 1]})
+(def direction->vector {:left  [-1 0]
+                        :right [1 0]
+                        :up    [0 -1]
+                        :down  [0 1]})
 
 ;; Specs
 (s/def ::coordinate (s/tuple int? int?))
 (s/def ::locaton ::coordinate)
 (s/def ::rect (s/cat :x int? :y int? :l int? :w int?))
-(s/def ::direction (s/and (s/tuple int? int?) #(#{[0 1] [0 -1] [1 0] [-1 0]} %)))
+(s/def ::direction (s/and (s/tuple int? int?) #{[0 1] [0 -1] [1 0] [-1 0]}))
 (s/def ::body (s/coll-of ::coordinate :distinct true :into '()))
 
-(s/def ::canvas-object (s/keys :req-un [::type]))
+(s/def ::canvas-object (s/keys :req-un [::type ::color]))
 (s/def ::snake (s/merge ::canvas-object (s/keys :req-un [::body ::direction])))
 (s/def ::apple (s/merge ::canvas-object (s/keys :req-un [::location])))
 
@@ -56,7 +50,7 @@
   "Creates an apple with a random x y coordinate within width and height"
   []
   {:location [(rand-int width) (rand-int height)]
-   :color (Color. 210 50 90)
+   :color :apple-color
    :type :apple})
 
 (s/fdef create-snake
@@ -65,9 +59,9 @@
   "Creates the snake with a body of size 1, facing right"
   []
   {:body (list [1 1])
-   :dir [1 0]
+   :direction [1 0]
    :type :snake
-   :color (Color. 15 160 70)})
+   :color :snake-color})
 
 (s/fdef turn
   :args (s/cat :snake ::snake :direction ::direction)
@@ -75,16 +69,16 @@
 (defn turn
   "Turns the direction of the snake"
   [snake newdir]
-  (assoc snake :dir newdir))
+  (assoc snake :direction newdir))
 
 (s/fdef move
-  :args (s/cat :snake ::snake :grow (s/? symbol?))
+  :args (s/cat :snake ::snake :grow (s/? keyword?))
   :ret ::snake)
 (defn move
   "Moves the snake, potentially growing it (by not removing the tail)"
-  [{:keys [body dir] :as snake} & grow]
+  [{:keys [body direction] :as snake} & grow]
   (assoc snake :body
-         (cons (add-points (first body) dir)
+         (cons (add-points (first body) direction)
                (if grow body (butlast body)))))
 
 (defn head-overlaps-body?
@@ -117,63 +111,3 @@
   (if (eats? snake apple)
     (assoc game-state :apple (create-apple) :snake (move snake :grow))
     (assoc game-state :snake (move snake))))
-
-;; Swing GUI
-;;
-(defn fill-point [^:Graphics g ^:Color color pt]
-  (let [[x y width height] (point-to-screen-rect pt)]
-    (.setColor g color)
-    (.fillRect g x y width height)))
-
-(defmulti paint (fn [^:Graphics g object & _] (:type object)))
-(defmethod paint :apple [^:Graphics g {:keys [location color]}]
-  (fill-point g color location))
-(defmethod paint :snake [^:Graphics g {:keys [body color]}]
-  (doseq [point body]
-    (fill-point g color point)))
-
-(defn game-panel [^:JFrame frame game-state]
-  (proxy [JPanel ActionListener KeyListener] []
-    (paintComponent [^:Graphics g]
-      (proxy-super paintComponent g)
-      (paint g (@game-state :snake))
-      (paint g (@game-state :apple)))
-    (actionPerformed [e]
-      (swap! game-state update-positions)
-      (when (head-overlaps-body? (@game-state :snake))
-        (swap! game-state reset-game)
-        (JOptionPane/showMessageDialog frame "You lose!"))
-      (when (win? (@game-state :snake))
-        (swap! game-state reset-game)
-        (JOptionPane/showMessageDialog frame "You win!"))
-      (.repaint this))
-    (keyPressed [e]
-      (swap! game-state update-direction (dirs (.getKeyCode e))))
-    (getPreferredSize []
-      (Dimension. (* (inc width) point-size)
-                  (* (inc height) point-size)))
-    (keyReleased [e])
-    (keyTyped [e])))
-
-(defn game
-  "Creates a new game in the swing UI Runtime"
-  []
-  (let [game-state (atom (reset-game {}))
-        frame (JFrame. "Snake")
-        panel (game-panel frame game-state)
-        timer (Timer. turn-millis panel)]
-    (doto panel
-      (.setFocusable true)
-      (.addKeyListener panel))
-    (doto frame
-      (.add panel)
-      (.pack)
-      (.setVisible true))
-    (.start timer)
-    [game-state, timer]))
-
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& _]
-  (println "Launching snake game in swing ui...")
-  (game))

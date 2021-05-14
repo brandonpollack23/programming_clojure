@@ -4,12 +4,12 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.baznex/imports "1.4.0"]]
-  :main snake.core
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}
-             :dev {:repl-options {:init-ns snake.core
+  :main snake.swing
+  :profiles {:uberjar-swing {:aot :all}
+             :dev {:repl-options {:init-ns snake.swing
                                   :init (do
                                           (set! *print-length* 10)
                                           (set! *print-level* 25))}
-                   :injections [(require 'clojure.spec.test.alpha)
-                                (clojure.spec.test.alpha/instrument)]}})
+                   :injections [(require '[clojure.spec.test.alpha :as stest])
+                                (stest/instrument)]}})
