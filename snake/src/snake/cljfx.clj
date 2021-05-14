@@ -8,8 +8,8 @@
 (def canvas-height (* point-size height))
 
 (defn eightbit->float [n] (float (/ n 255)))
-(def apple-color-rgba (map eightbit->float [210 50 90 1]))
-(def snake-color-rgba (map eightbit->float [15 160 70 1]))
+(def apple-color-rgba (map eightbit->float [210 50 90 255]))
+(def snake-color-rgba (map eightbit->float [15 160 70 255]))
 
 (def game-colors->javafx-color {:apple-color (apply #(Color. %1 %2 %3 %4) apple-color-rgba)
                                 :snake-color (apply #(Color. %1 %2 %3 %4) snake-color-rgba)})
@@ -52,10 +52,9 @@
        :showing true
        :scene {:fx/type :scene
                :root {:fx/type :v-box
-                      :alignment :center
                       :children [{:fx/type game-canvas
-                                  :width width
-                                  :height height
+                                  :width canvas-width
+                                  :height canvas-height
                                   :game-state (:game-state application-state)}]}}}))))
 
 (defn game-step
@@ -82,6 +81,7 @@
   (let [*application-state (atom {:game-state (reset-game)})
         renderer (fx/mount-renderer *application-state renderer)]
     (loop []
+      ;; TODO event handling
       ;; TODO replace with something that isnt sleep
       (java.lang.Thread/sleep turn-millis)
       (swap! *application-state application-game-step)
