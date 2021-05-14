@@ -42,7 +42,7 @@
   (vec (apply map + pts)))
 
 (s/fdef point-to-screen-rect
-  :args ::coordinate
+  :args (s/cat :coordinate ::coordinate)
   :ret ::rect)
 (defn point-to-screen-rect
   "Converts a point in game space to a rectange on the screen"
