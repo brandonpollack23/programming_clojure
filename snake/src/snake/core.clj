@@ -3,7 +3,8 @@
            (javax.swing JPanel JFrame Timer JOptionPane)
            (java.awt.event ActionListener KeyListener))
   (:require [org.baznex.imports :refer [import-static]]
-            [clojure.spec.alpha :as s]))
+            [clojure.spec.alpha :as s])
+  (:gen-class))
 (import-static java.awt.event.KeyEvent VK_LEFT VK_RIGHT VK_UP VK_DOWN)
 
 ;; Global configuration options.
@@ -166,6 +167,6 @@
 
 (defn -main
   "I don't do a whole lot ... yet."
-  [& args]
+  [& _]
   (println "Launching snake game in swing ui...")
   (game))

@@ -5,7 +5,7 @@ Snake game from programming clojure as is.
 * Tasks
 + [ ] Spec for game-state
 + [ ] Seperate core from swing
-+ [ ] Do a build to uberjar and run on windows
++ [X] Do a build to uberjar and run on windows
 + [ ] Add cljfx version and build
 + [ ] Make snake larger by default
 + [ ] Add points display

@@ -4,7 +4,7 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.baznex/imports "1.4.0"]]
-  :main ^:skip-aot snake.core
+  :main snake.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}
              :dev {:repl-options {:init-ns snake.core
