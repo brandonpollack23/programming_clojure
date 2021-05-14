@@ -3,16 +3,15 @@
 Snake game from programming clojure as is.
 
 * Tasks
-** [ ] Spec for game-state
-** [ ] Seperate core from swing
-** [ ] Add cljfx version and build
-** [ ] Make snake larger by default
-** [ ] Add points display
-** [ ] Make the window size programmable/fullscreenable
-** [ ] Add Pause/Options Menu
-*** [ ] Add Restart Button
-*** [ ] Make win length an option
-
++ [ ] Spec for game-state
++ [ ] Seperate core from swing
++ [ ] Add cljfx version and build
++ [ ] Make snake larger by default
++ [ ] Add points display
++ [ ] Make the window size programmable/fullscreenable
++ [ ] Add Pause/Options Menu
+  + [ ] Add Restart Button
+  + [ ] Make win length an option
 * License
 
 Copyright © 2021 Brandon Pollack
