@@ -41,11 +41,17 @@
   (fx/create-renderer :middleware
                       (fx/wrap-map-desc (fn [game-state]
                                           {:fx/type :stage
+                                           :title "CLJFX Snake!"
+                                           :width (* point-size width)
+                                           :height (* point-size height)
                                            :showing true
-                                           :scene {:fx/type game-canvas
-                                                   :width width
-                                                   :height height
-                                                   :game-state game-state}}))))
+                                           :scene {:fx/type :scene
+                                                   :root {:fx/type :v-box
+                                                          :alignment :center
+                                                          :children [{:fx/type game-canvas
+                                                                      :width width
+                                                                      :height height
+                                                                      :game-state game-state}]}}}))))
 
 (defn game
   "Creates a new game in the javafx UI Runtime via cljfx"
