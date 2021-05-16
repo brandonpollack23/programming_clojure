@@ -80,14 +80,6 @@
              app-state
              :game-state
              handle-key-pressed keycode)}))
-;; (defn handle [{:keys [event/type app-state] :as event}]
-;;   ;; TODO better destructuring
-;;   (let [keycode (.getCode ^KeyEvent (:fx/event event))]
-;;     (case type
-;;       ::key-pressed {:state (update
-;;                              app-state
-;;                              :game-state
-;;                              handle-key-pressed keycode)})))
 
 (defn create-actual-handler [*state]
   (-> handle
