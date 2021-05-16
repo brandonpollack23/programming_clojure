@@ -57,7 +57,7 @@
 
 ;; UI Events
 
-(def keymap
+(def direction-keymap
   {KeyCode/LEFT  :left
    KeyCode/RIGHT :right
    KeyCode/UP    :up
@@ -66,11 +66,12 @@
    KeyCode/D     :right
    KeyCode/S     :down
    KeyCode/W     :up})
-;; TODO make pure event handler
 (defn handle-key-pressed [state keycode]
-  (if-let [direction (direction->vector (keymap keycode))]
-    (update-direction state direction)
-    state))
+  (cond
+    (direction-keymap keycode) (let [direction (direction->vector
+                                                (direction-keymap keycode))]
+                                 (update-direction state direction))
+    :else state))
 
 (defmulti handle :event/type)
 (defmethod handle ::key-pressed [{:keys [app-state] :as event}]
