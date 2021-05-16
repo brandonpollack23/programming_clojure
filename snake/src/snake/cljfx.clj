@@ -67,6 +67,24 @@
    KeyCode/S     :down
    KeyCode/W     :up})
 ;; TODO make pure event handler
+(defn handle-key-pressed [state keycode]
+  (when-let [direction (direction->vector (keymap keycode))]
+    (update-direction state direction)))
+
+;; TODO defmulti/defmethod
+(defn handle [{:keys [event/type app-state] :as event}]
+  ;; TODO better destructuring
+  (let [keycode (.getCode ^KeyEvent (:fx/event event))]
+    (case type
+      ::key-pressed {:state (update
+                             app-state
+                             :game-state
+                             handle-key-pressed keycode)})))
+
+(defn create-actual-handler [*state]
+  (-> handle
+      (fx/wrap-co-effects {:state #(deref *state)})
+      (fx/wrap-effects {:state (fn [state _] (reset! *state state))})))
 
 ;; UI
 
@@ -78,7 +96,7 @@
    :draw #(draw-game % game-state)})
 
 ;; TODO on renderer exit exit application
-(def renderer
+(defn create-renderer [*application-state]
   (fx/create-renderer
    :middleware
    (fx/wrap-map-desc
@@ -89,19 +107,21 @@
        :height canvas-height
        :showing true
        :scene {:fx/type :scene
+               :on-key-pressed {:event/type ::key-pressed
+                                :app-state application-state}
                :root {:fx/type :v-box
                       :children [{:fx/type game-canvas
                                   :width canvas-width
                                   :height canvas-height
-                                  :game-state (:game-state application-state)}]}}}))))
+                                  :game-state (:game-state application-state)}]}}}))
+   :opts {:fx.opt/map-event-handler (create-actual-handler *application-state)}))
 
 (defn application-loop
   "Creates a new game in the javafx UI Runtime via cljfx"
   []
   (let [*application-state (atom {:game-state (reset-game)})
-        renderer (fx/mount-renderer *application-state renderer)]
+        renderer (fx/mount-renderer *application-state (create-renderer *application-state))]
     (loop []
-      ;; TODO event handling
       ;; TODO replace with something that isnt sleep
       (java.lang.Thread/sleep turn-millis)
       (swap! *application-state application-game-step)
