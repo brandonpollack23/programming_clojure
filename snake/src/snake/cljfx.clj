@@ -68,18 +68,25 @@
    KeyCode/W     :up})
 ;; TODO make pure event handler
 (defn handle-key-pressed [state keycode]
-  (when-let [direction (direction->vector (keymap keycode))]
-    (update-direction state direction)))
+  (if-let [direction (direction->vector (keymap keycode))]
+    (update-direction state direction)
+    state))
 
-;; TODO defmulti/defmethod
-(defn handle [{:keys [event/type app-state] :as event}]
-  ;; TODO better destructuring
+(defmulti handle :event/type)
+(defmethod handle ::key-pressed [{:keys [app-state] :as event}]
   (let [keycode (.getCode ^KeyEvent (:fx/event event))]
-    (case type
-      ::key-pressed {:state (update
-                             app-state
-                             :game-state
-                             handle-key-pressed keycode)})))
+    {:state (update
+             app-state
+             :game-state
+             handle-key-pressed keycode)}))
+;; (defn handle [{:keys [event/type app-state] :as event}]
+;;   ;; TODO better destructuring
+;;   (let [keycode (.getCode ^KeyEvent (:fx/event event))]
+;;     (case type
+;;       ::key-pressed {:state (update
+;;                              app-state
+;;                              :game-state
+;;                              handle-key-pressed keycode)})))
 
 (defn create-actual-handler [*state]
   (-> handle
