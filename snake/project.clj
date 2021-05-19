@@ -5,9 +5,11 @@
   :dependencies [[org.clojure/clojure "1.10.3"]
                  [cljfx "1.7.13"]]
   :target-path "target/%s"
-  :main snake.swing
-  ;; TODO (uber)jar-exclusions of swing
-  :profiles {:uberjar-swing {:aot :all}
+  :main snake.cljfx
+  :profiles {:uberjar-cljfx {:aot [snake.core
+                                   snake.cljfx]
+                             :jvm-opts ["-Dcljfx.skip-javafx-initialization=true"]
+                             :uberjar-name "snake-cljfx-standalone.jar"}
              :dev {:dependencies [[clj-commons/pomegranate "1.2.1"]
                                   [vvvvalvalval/scope-capture "0.3.2"]]
                    :global-vars [[*print-length* 10]

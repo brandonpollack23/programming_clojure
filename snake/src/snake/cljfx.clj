@@ -92,7 +92,6 @@
   {:fx/type :canvas
    :width width
    :height height
-   ;; TODO on key pressed
    :draw #(draw-game % game-state)})
 
 ;; TODO on renderer exit exit application
@@ -122,7 +121,9 @@
   (let [*application-state (atom {:game-state (reset-game)})
         renderer (fx/mount-renderer *application-state (create-renderer *application-state))]
     (loop []
-      ;; TODO replace with something that isnt sleep
+      ;; Sleeping kind of is lame, but it works for something so simple, I'm not
+      ;; going to leanr to use JavaFX animation stuff to hook into it just so it
+      ;; can sleep for me on a snake game
       (java.lang.Thread/sleep turn-millis)
       (swap! *application-state application-game-step)
       (recur))))
